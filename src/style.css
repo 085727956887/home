@@ -1,50 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
+/* 🛠️ RESET GLOBAL: Wajib agar tidak ada elemen yang melar keluar layar */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 :root {
-  /* Menggunakan font utama Plus Jakarta Sans agar terlihat modern */
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: #121214;
   color: #e1e1e6;
 }
 
-/* 📱 PERBAIKAN UTAMA: Box-sizing global agar element tidak jebol keluar layar */
-* {
-  box-sizing: border-box;
-}
-
 body {
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  /* Di HP padding-nya mengecil jadi 1rem agar layar tidak kesempitan */
-  padding: 1.5rem 1rem; 
+  background-color: #121214;
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  overflow-x: hidden; /* 📱 Mengunci layar agar HP tidak bisa digeser-geser ke kanan/kiri */
 }
 
+/* 🖥️ CONTAINER UTAMA: Pas di desktop, aman di HP */
 .container {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px; /* Lebar ideal untuk desktop agar tidak terlalu ramping */
   margin: 0 auto;
+  padding: 2rem 1.25rem; /* Padding samping disesuaikan agar pas di HP */
 }
 
 h1 {
   color: #00b37e;
-  font-size: 1.8rem;
-  margin-top: 0;
+  font-size: 2.2rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 p {
   color: #8d8d99;
   margin-bottom: 2rem;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
 }
 
 textarea {
@@ -53,15 +56,16 @@ textarea {
   background-color: #202024;
   color: #e1e1e6;
   border: 1px solid #323238;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   resize: vertical;
   outline: none;
   font-family: inherit;
+  transition: border-color 0.2s;
 }
 
 textarea:focus {
-  outline: 2px solid #00b37e;
+  border-color: #00b37e;
 }
 
 button {
@@ -69,12 +73,14 @@ button {
   background-color: #00b37e;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
-  -webkit-appearance: none; /* Normalkan tampilan di iOS Safari */
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 button:hover {
@@ -92,7 +98,7 @@ h2 {
   border-bottom: 1px solid #323238;
   padding-bottom: 0.5rem;
   color: #e1e1e6;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .list-ide {
@@ -100,26 +106,26 @@ h2 {
   flex-direction: column;
   gap: 1.5rem;
   margin-top: 1.5rem;
+  width: 100%;
 }
 
 .card-ide {
   background-color: #202024;
-  padding: 1.25rem; /* Sedikit dikecilkan agar pas di HP */
-  border-radius: 8px;
+  padding: 1.5rem;
+  border-radius: 12px;
   border: 1px solid #323238;
-  line-height: 1.6;
+  line-height: 1.7;
   width: 100%;
-  overflow: hidden; /* Mencegah card melar keluar layar */
+  overflow-x: hidden; /* Mencegah card merusak layout mobile */
 }
 
-
-/* 🧙‍♂️ FORMAT KHUSUS UNTUK TEKS MARKDOWN DARI AI */
-
+/* 🧙‍♂️ FORMAT TEKS AI (MARKDOWN RENDERING) */
 .markdown-content {
-  word-break: break-word; /* Memaksa teks panjang bungkus ke bawah */
+  word-wrap: break-word;
+  word-break: break-word; /* Memaksa teks AI membungkus ke bawah jika terlalu panjang */
 }
 
-.markdown-content h2, .markdown-content h3 {
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
   color: #ffffff;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
@@ -127,43 +133,74 @@ h2 {
 }
 
 .markdown-content h2 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   border-bottom: 1px solid #323238;
   padding-bottom: 4px;
 }
 
 .markdown-content p {
   color: #cbd5e1;
-  font-size: 14px;
+  font-size: 15px;
   margin-bottom: 12px;
 }
 
 .markdown-content strong {
-  color: #00b37e; /* Highlight teks tebal menggunakan warna hijau andalanmu */
+  color: #00b37e;
   font-weight: 600;
 }
 
 .markdown-content ul, .markdown-content ol {
   color: #cbd5e1;
-  padding-left: 20px;
+  padding-left: 1.25rem;
   margin-bottom: 12px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
-/* 💻 KOTAK KODE PREMIUM (BISA DI-SCROLL KE SAMPING DI HP) */
+.markdown-content li {
+  margin-bottom: 4px;
+}
+
+/* 💻 KOTAK KODE MAKSIMAL DI HP (BISA DI-SCROLL INTERNAL) */
 .markdown-content pre {
   background-color: #121214;
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #323238;
-  overflow-x: auto; /* Kunci utama: kodingan memanjang bisa di-scroll ke samping, bukan ngerusak layout */
+  overflow-x: auto;
   margin: 1rem 0;
   max-width: 100%;
 }
 
 .markdown-content code {
-  font-family: 'Fira Code', monospace; /* Font kodingan khusus */
+  font-family: 'Fira Code', monospace;
   color: #e1e1e6;
   font-size: 13px;
   white-space: pre;
+}
+
+/* ==========================================================================
+   📱 MEDIA QUERY UNTUK MOBILE (Otomatis Aktif di HP)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  .card-ide {
+    padding: 1.1rem;
+  }
+
+  .markdown-content p, 
+  .markdown-content ul, 
+  .markdown-content ol {
+    font-size: 14px;
+  }
 }
