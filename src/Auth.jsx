@@ -133,7 +133,7 @@ export default function Auth() {
           {/* 👤 KOLOM USERNAME (Muncul di Daftar & Login) */}
           <textarea
             rows={1}
-            placeholder="Ketik username (contoh: budi123)"
+            placeholder="Ketik username"
             value={username}
             onChange={(e) => setUsername(e.target.value.replace(/\s+/g, ''))}
             style={{ resize: 'none' }}
