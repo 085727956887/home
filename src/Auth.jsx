@@ -13,67 +13,47 @@ export default function Auth() {
   const handleAuth = async (e) => {
     e.preventDefault()
     
-    const cleanUsername = username.trim().toLowerCase()
+    const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '')
     if (!cleanUsername || !password.trim()) {
       return alert('Username dan password wajib diisi!')
     }
+
+    // 🕵️‍♂️ TRIK GAIB: Mengubah username jadi format email internal khusus aplikasi kamu
+    // Supabase Auth akan membaca ini sebagai email unik kamu
+    const internalEmail = `${cleanUsername}@ia-automation.com`
 
     try {
       setLoading(true)
 
       if (isRegister) {
         // =================================================================
-        // ALUR DAFTAR AKUN (Minta Username, Email, & Password)
+        // 1. ALUR DAFTAR (Username + Email Asli + Password)
         // =================================================================
-        if (!email.trim()) return alert('Email wajib diisi saat mendaftar!')
+        if (!email.trim()) return alert('Email asli wajib diisi saat mendaftar!')
 
-        // 1. Cek dulu apakah username sudah dipakai orang lain di database
-        const { data: existingUser } = await supabase
-          .from('notes') // Kita pinjam pengecekan lewat metadata via RPC atau trik query profile
-          // Untuk amannya, Supabase menyimpan metadata di auth.users. 
-          // Kita bisa langsung tembak pendaftaran, jika username duplikat kita handle secara logika atau lewat profile.
-          
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
+        const { error } = await supabase.auth.signUp({
+          email: internalEmail, // Didaftarkan pakai format id internal biar bisa login pakai username
           password: password,
           options: {
-            // 💾 Menyimpan username ke dalam data metadata user
-            data: { display_username: cleanUsername }
+            data: { 
+              real_email: email.trim(), // Email aslimu tetap disimpan aman di sini
+              username: cleanUsername
+            }
           }
         })
         
         if (error) throw error
         
-        alert(`Akun @${cleanUsername} berhasil terdaftar! Silakan langsung klik Masuk Aplikasi.`)
+        alert(`Akun @${cleanUsername} berhasil dibuat! Silakan tunggu sampai rate limit email terbuka untuk mencoba login pertama kali.`)
         setIsRegister(false)
         setEmail('')
 
       } else {
         // =================================================================
-        // ALUR LOGIN (Hanya Butuh Username & Password)
+        // 2. ALUR LOGIN (Cukup Username + Password)
         // =================================================================
-        
-        // 🕵️‍♂️ Cari email asli berdasarkan username yang diketik di metadata auth
-        // Karena kita tidak bisa query auth.users langsung dari frontend demi keamanan, 
-        // Supabase menyediakan trik mendeteksi user lewat tabel buatan atau trik reset.
-        // Cara paling standar & aman tanpa bikin tabel baru: Ambil lewat fungsi pembantu bawaan.
-        
-        // Solusi termudah & anti-gagal: Kita cari emailnya lewat trik pencarian user metadata
-        // Namun karena auth.users diproteksi, mari kita buat trik bypass otomatis:
-        // Kita berasumsi username yang unik disimpan. 
-        // Agar sistem pencarian username ke email berjalan mulus dari client-side, 
-        // Supabase menyarankan menggunakan format identitas tersembunyi seperti ini:
-        
-        const loginEmail = `${cleanUsername}@user.idea` 
-        // Tapi karena kamu ingin EMAIL ASLI saat daftar, mari gunakan trik database:
-        // Jika tidak ingin ribet bikin tabel 'profiles', kita bisa pakai trik fake-email berbasis username saat login
-        // Agar sinkron, saat DAFTAR, mari kita daftarkan emailnya sebagai `username@app.com` saja, tapi email aslinya disimpan di metadata!
-        
-        // Jika kamu ingin email aslinya benar-benar email valid untuk notifikasi, kita harus menembak fungsi RPC.
-        // Tapi kalau tujuannya "Email diisi saat daftar cuma buat formalitas syarat data", kita pakai trik super simpel ini:
-        
         const { error } = await supabase.auth.signInWithPassword({
-          email: `${cleanUsername}@aplikasi.com`, // Latar belakang otomatis membaca format ini
+          email: internalEmail, // Otomatis masuk lewat format id internal tadi
           password: password
         })
 
@@ -82,41 +62,11 @@ export default function Auth() {
     } catch (error) {
       let msg = error.message
       if (msg.includes('Invalid login credentials')) {
-        msg = 'Username atau password yang kamu masukkan salah!'
+        msg = 'Username atau password salah!'
+      } else if (msg.includes('already registered')) {
+        msg = 'Username ini sudah terdaftar, silakan pakai username lain.'
       }
       alert(msg)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Modifikasi fungsi daftar khusus agar selaras dengan trik username-login
-  const handleRegisterReal = async (e) => {
-    e.preventDefault()
-    const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, '')
-    if (!cleanUsername || !email.trim() || !password.trim()) {
-      return alert('Semua kolom wajib diisi!')
-    }
-
-    try {
-      setLoading(true)
-      // Kita daftarkan auth utama dengan username@aplikasi.com agar saat login tinggal ketik username
-      // Email asli kiriman user kita simpan aman di dalam metadata (user_metadata)
-      const { error } = await supabase.auth.signUp({
-        email: `${cleanUsername}@aplikasi.com`,
-        password: password,
-        options: {
-          data: { 
-            real_email: email.trim(),
-            username: cleanUsername
-          }
-        }
-      })
-      if (error) throw error
-      alert(`Registrasi sukses! Akun @${cleanUsername} siap digunakan. Silakan login.`);
-      setIsRegister(false)
-    } catch (error) {
-      alert(error.message)
     } finally {
       setLoading(false)
     }
@@ -129,8 +79,8 @@ export default function Auth() {
           {isRegister ? 'Daftar Akun Baru' : 'Masuk Aplikasi'}
         </h1>
         
-        <form onSubmit={isRegister ? handleRegisterReal : handleAuth}>
-          {/* 👤 KOLOM USERNAME (Muncul di Daftar & Login) */}
+        <form onSubmit={handleAuth}>
+          {/* USERNAME */}
           <textarea
             rows={1}
             placeholder="Ketik username"
@@ -140,7 +90,7 @@ export default function Auth() {
             disabled={loading}
           />
 
-          {/* 📧 KOLOM EMAIL (Hanya muncul saat klik DAFTAR) */}
+          {/* EMAIL ASLI (Hanya Muncul Saat Klik Daftar) */}
           {isRegister && (
             <textarea
               rows={1}
@@ -152,7 +102,7 @@ export default function Auth() {
             />
           )}
           
-          {/* 🔒 KOLOM PASSWORD (Muncul di Daftar & Login) */}
+          {/* PASSWORD */}
           <input
             type="password"
             placeholder="Ketik password"
@@ -179,7 +129,6 @@ export default function Auth() {
           <span
             onClick={() => {
               setIsRegister(!isRegister)
-              // Reset input form kalau pindah tab biar bersih
               setUsername('')
               setEmail('')
               setPassword('')
